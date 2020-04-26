@@ -2,7 +2,9 @@ import os
 import glob
 import time
 import RPi.GPIO as GPIO    # Import Raspberry Pi GPIO library
-import time
+from time import sleep
+import datetime
+
 
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
@@ -11,17 +13,19 @@ base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
 
+#Sensors
 relay_cold = 15
 relay_hot = 16
+#temp_probe = 13
 
-def blink():
+def blink(pin):
     GPIO.setwarnings(False)    # Ignore warning for now
     GPIO.setmode(GPIO.BOARD)   # Use physical pin numbering
-    GPIO.setup(27, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)
     #while True: # Run forever
-    GPIO.output(27, GPIO.HIGH) # Turn on
+    GPIO.output(pin, GPIO.HIGH) # Turn on
     sleep(1)                  # Sleep for 1 second
-    GPIO.output(27, GPIO.LOW)  # Turn off
+    GPIO.output(pin, GPIO.LOW)  # Turn off
     sleep(1) 
 
 def read_temp_raw():
@@ -43,37 +47,37 @@ def read_temp():
         temp_f = temp_c * 9.0 / 5.0 + 32.0
         return temp_c
 
-def relays():
+#Relays
+def relays(relay_change, state):
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(relay_cold, GPIO.OUT)
-    GPIO.setup(relay_hot, GPIO.OUT)
+    GPIO.setup(relay_change, GPIO.OUT)
+    GPIO.output(relay_change, state)
 
-    GPIO.output(relay_cold, False)
-    GPIO.output(relay_hot, False)
+now = datetime.datetime.now().replace(second=0, microsecond=0)
 
-#try:
-    #while True:
-        #print(read_temp())
-        #time.sleep(1)
-        #if read_temp() < float(30):
-        #print(read_temp())
-        #time.sleep(1)
-            #blink()
-            #relays()
-        #time.sleep(1)
-        #GPIO.output(relay_cold, True)
-        #time.sleep(0.1)
-        #GPIO.output(relay_cold, False)
-        #GPIO.output(relay_hot, True)
-        #time.sleep(0.1)
-        #GPIO.output(relay_hot, False)
-      
-      #GPIO.output(relay_cold,True)
-      #GPIO.output(relay_hot,True)
-    #else:
-     #   print(read_temp())
-      #  time.sleep(3)
-            #print(read_temp())
-    #time.sleep(1) read_temp() > float(25
-#except KeyboardInterrupt:
-    #GPIO.cleanup()
+try:
+    while True:
+        print(read_temp())
+        print(now)
+        if read_temp() < float(30):
+            relays(relay_cold, True)
+            #time.sleep(3)
+        #while read_temp() < float(30) and read_temp() > float(1):
+         #   relays(relay_cold, True)
+            #time.sleep(3)
+        #if read_temp() < float(1) and read_temp() > float(1):
+         #   relays(relay_cold, True)
+          #  time.sleep(300)
+          #  relays(relay_cold, False)
+           # time.sleep(2)
+            #relays(relay_hot, True)
+            #time.sleep(300)
+            #if read_temp() > float(1) and read_temp() < float(10):
+            #    relays(relay_hot, True)
+            #else:
+             #   relays(relay_hot, False)
+        #else:
+            #relays(relay_hot, False)
+            #relays(relay_cold, False)
+except KeyboardInterrupt:
+    GPIO.cleanup()

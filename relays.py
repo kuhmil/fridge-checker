@@ -1,28 +1,29 @@
 import RPi.GPIO as GPIO
 import time
 
-channel = 15
+in1 = 16
+in2 = 15
 
-# GPIO setup
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(channel, GPIO.OUT)
-GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(in1, GPIO.OUT)
+GPIO.setup(in2, GPIO.OUT)
 
+GPIO.output(in1, False)
+GPIO.output(in2, False)
 
-def motor_on(pin):
-    GPIO.output(pin, GPIO.HIGH)  # Turn motor on
+try:
+    while True:
+      for x in range(5):
+            GPIO.output(in1, True)
+            time.sleep(0.1)
+            GPIO.output(in1, False)
+            GPIO.output(in2, True)
+            time.sleep(0.1)
+            GPIO.output(in2, False)
+            
+      
+      GPIO.output(in1,True)
+      GPIO.output(in2,True)
 
-
-def motor_off(pin):
-    GPIO.output(pin, GPIO.LOW)  # Turn motor off
-
-
-if __name__ == '__main__':
-    try:
-        motor_on(channel)
-        time.sleep(5)
-        motor_off(channel)
-        time.sleep(5)
-        GPIO.cleanup()
-    except KeyboardInterrupt:
-        GPIO.cleanup()
+except KeyboardInterrupt:
+    GPIO.cleanup()

@@ -11,17 +11,21 @@ base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
 
+
+#Sensors
 relay_cold = 15
 relay_hot = 16
+
+#GPIO.output(relay_cold, True)
 
 def blink():
     GPIO.setwarnings(False)    # Ignore warning for now
     GPIO.setmode(GPIO.BOARD)   # Use physical pin numbering
-    GPIO.setup(13, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(7, GPIO.OUT, initial=GPIO.LOW)
     #while True: # Run forever
-    GPIO.output(13, GPIO.HIGH) # Turn on
+    GPIO.output(7, GPIO.HIGH) # Turn on
     sleep(1)                  # Sleep for 1 second
-    GPIO.output(13, GPIO.LOW)  # Turn off
+    GPIO.output(7, GPIO.LOW)  # Turn off
     sleep(1) 
 
 def read_temp_raw():
@@ -48,21 +52,16 @@ def relays():
     GPIO.setup(relay_cold, GPIO.OUT)
     GPIO.setup(relay_hot, GPIO.OUT)
 
-    GPIO.output(relay_cold, False)
-    GPIO.output(relay_hot, False)
+    GPIO.output(relay_cold, True)
+    GPIO.output(relay_hot, True)
 
-while True:
-    print(read_temp())
-    time.sleep(1)
-    if read_temp() < float(25):
-        #print(read_temp())
-        #time.sleep(1)
-        blink()
-        #time.sleep(1)
-    #else:
-     #   print(read_temp())
-      #  time.sleep(3)
+try:
+    while True:
+        print(read_temp())
+        if read_temp() < float(25):
             #print(read_temp())
-    #time.sleep(1) read_temp() > float(25):
-
-
+            time.sleep(1)
+            blink()
+            #relays()
+except KeyboardInterrupt:
+    GPIO.cleanup()
