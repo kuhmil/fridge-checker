@@ -2,9 +2,14 @@ import os
 import glob
 import time
 import RPi.GPIO as GPIO    # Import Raspberry Pi GPIO library
-from time import sleep
-import datetime
-
+#from time import sleep
+import datetime 
+import time
+import sqlite3
+#import Adafruit_DHT
+dbname='sensorsData.db'
+sampleFreq = 2 # time in seconds
+# get data from DHT sensor
 
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
@@ -26,7 +31,7 @@ def blink(pin):
     GPIO.output(pin, GPIO.HIGH) # Turn on
     sleep(1)                  # Sleep for 1 second
     GPIO.output(pin, GPIO.LOW)  # Turn off
-    sleep(1) 
+    sleep(1)
 
 def read_temp_raw():
     f = open(device_file, 'r')
@@ -55,14 +60,43 @@ def relays(relay_change, state):
 
 now = datetime.datetime.now().replace(second=0, microsecond=0)
 
+def logData (temp):    
+    conn=sqlite3.connect(dbname)
+    curs=conn.cursor()
+    print("reading log")
+    curs.execute("INSERT INTO sensor_data values(datetime('now'), (?))", (temp,))
+    #sql = "INSERT INTO sensor_data(datetimes, temp) VALUES (%s, %s)"
+    #val = (datetime('now'), temp) 
+    #mycursor.execute(sql, val) 
+    conn.commit()
+    conn.close()
+# display database data
+def displayData():
+    conn=sqlite3.connect(dbname)
+    curs=conn.cursor()
+    print ("\nEntire database contents:\n")
+    for row in curs.execute("SELECT * FROM sensor_data"):
+        print (row)
+    conn.close()
+# main function
+def main():
+    for i in range (0,3):
+        read_temp()
+        time.sleep(sampleFreq)
+    displayData()
+
 try:
     while True:
-        print(read_temp())
-        print(now)
-        print("Relay reading")
-        if read_temp() < float(30) and read_temp() > float(1):
-            relays(relay_cold, True)
-            relays(relay_hot, False)
+        temp_c = read_temp()
+        logData(int(temp_c))
+        time.sleep(sampleFreq)
+        print("temperature")
+        main()
+        print(f"{temp_c} writing temp data to database")
+        #print(main())
+        # if read_temp() < float(30) and read_temp() > float(1):
+        #     relays(relay_cold, True)
+        #     relays(relay_hot, False)
             #time.sleep(3)
         #while read_temp() < float(30) and read_temp() > float(1):
          #   relays(relay_cold, True)
